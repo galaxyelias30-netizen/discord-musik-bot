@@ -15,8 +15,8 @@ ydl_opts = {
     'default_search': 'ytsearch',
     'ignoreerrors': True,
     'no_warnings': True,
-    'extractor_args': {'youtube': {'skip': ['dash', 'hls', 'webpage']}},
-    'age_limit': 0,
+    'cookiefile': 'cookies.txt',        # <--- wichtig
+    'extractor_args': {'youtube': {'skip': ['dash', 'hls']}},
 }
 
 queue = []
@@ -24,7 +24,7 @@ volume_level = 0.5
 
 @bot.event
 async def on_ready():
-    print(f'✅ {bot.user} ist ONLINE! Anti-Block Version')
+    print(f'✅ {bot.user} ist ONLINE! Cookie Version')
 
 radios = {
     "dasding": "https://liveradio.swr.de/d9zadj3/dasding/",
