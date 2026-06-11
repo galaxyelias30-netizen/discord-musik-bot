@@ -21,17 +21,21 @@ volume_level = 0.5
 
 @bot.event
 async def on_ready():
-    print(f'✅ {bot.user} ist ONLINE! Stabile Radio Version')
+    print(f'✅ {bot.user} ist ONLINE! Auto-Stop Version')
 
 radios = {
     "dasding": "https://liveradio.swr.de/d9zadj3/dasding/",
     "1live": "http://wdr-1live-live.icecast.wdr.de/wdr/1live/live/mp3/128/stream.mp3",
     "phonk": "https://stream.laut.fm/phonk",
     "lofi": "https://stream.laut.fm/lofi",
-    "deutschrap": "https://stream.laut.fm/deutschrap",
     "chill": "https://stream.laut.fm/chill",
+    "deutschrap": "https://stream.laut.fm/deutschrap",
     "rap": "https://stream.laut.fm/rap",
 }
+
+async def stop_current(ctx):
+    if ctx.voice_client and ctx.voice_client.is_playing():
+        ctx.voice_client.stop()
 
 async def play_next(ctx):
     if not queue:
@@ -42,7 +46,8 @@ async def play_next(ctx):
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(query, download=False)
             if not info or 'url' not in info:
-                return await ctx.send("❌ Konnte Audio nicht laden (YouTube Block). Nutze direkten Link.")
+                await ctx.send("❌ Konnte nicht laden.")
+                return await play_next(ctx)
             url = info['url']
             title = info.get('title', 'Song')
         vc = ctx.voice_client
@@ -60,7 +65,9 @@ async def play(ctx, *, link: str):
         return await ctx.send("❌ Du musst im Voice sein!")
     if ctx.voice_client is None:
         await ctx.author.voice.channel.connect()
+    await stop_current(ctx)
     await ctx.send(f"🔍 Lade: **{link}**")
+    queue.clear()  # Alte Queue löschen
     queue.append(link)
     if not ctx.voice_client.is_playing():
         await play_next(ctx)
@@ -71,6 +78,7 @@ async def radio(ctx, station: str = "dasding"):
         return await ctx.send("❌ Du musst im Voice sein!")
     if ctx.voice_client is None:
         await ctx.author.voice.channel.connect()
+    await stop_current(ctx)
     url = radios.get(station.lower(), radios["dasding"])
     await ctx.send(f"📻 **{station.upper()}** läuft!")
     try:
