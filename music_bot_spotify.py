@@ -21,7 +21,7 @@ volume_level = 0.5
 
 @bot.event
 async def on_ready():
-    print(f'✅ {bot.user} ist ONLINE! Direct Links only')
+    print(f'✅ {bot.user} ist ONLINE! Stabile Radio Version')
 
 radios = {
     "dasding": "https://liveradio.swr.de/d9zadj3/dasding/",
@@ -30,6 +30,7 @@ radios = {
     "lofi": "https://stream.laut.fm/lofi",
     "deutschrap": "https://stream.laut.fm/deutschrap",
     "chill": "https://stream.laut.fm/chill",
+    "rap": "https://stream.laut.fm/rap",
 }
 
 async def play_next(ctx):
@@ -40,8 +41,8 @@ async def play_next(ctx):
         await ctx.send("⏳ Lade...")
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(query, download=False)
-            if info is None or 'url' not in info:
-                return await ctx.send("❌ Konnte den Link nicht abspielen.")
+            if not info or 'url' not in info:
+                return await ctx.send("❌ Konnte Audio nicht laden (YouTube Block). Nutze direkten Link.")
             url = info['url']
             title = info.get('title', 'Song')
         vc = ctx.voice_client
