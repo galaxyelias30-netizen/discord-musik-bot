@@ -15,7 +15,7 @@ ydl_opts = {
     'default_search': 'ytsearch',
     'ignoreerrors': True,
     'no_warnings': True,
-    'cookiefile': 'cookies.txt',        # <--- wichtig
+    'cookiefile': 'cookies.txt',
     'extractor_args': {'youtube': {'skip': ['dash', 'hls']}},
 }
 
