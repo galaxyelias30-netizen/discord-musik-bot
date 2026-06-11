@@ -23,7 +23,7 @@ volume_level = 0.5
 
 @bot.event
 async def on_ready():
-    print(f'✅ {bot.user} ist ONLINE! Voice Fix')
+    print(f'✅ {bot.user} ist ONLINE! Join Fix')
 
 radios = {
     "dasding": "https://liveradio.swr.de/d9zadj3/dasding/",
@@ -57,23 +57,25 @@ async def play_next(ctx):
 async def play(ctx, *, search: str):
     if not ctx.author.voice:
         return await ctx.send("❌ Du musst im Voice sein!")
-    vc = ctx.voice_client or await ctx.author.voice.channel.connect()
+    if ctx.voice_client is None:
+        await ctx.author.voice.channel.connect()
     await ctx.send(f"🔍 Suche: **{search}**")
     queue.append(f"ytsearch:{search}" if not search.startswith("http") else search)
-    if not vc.is_playing():
+    if not ctx.voice_client.is_playing():
         await play_next(ctx)
 
 @bot.command()
 async def radio(ctx, station: str = "dasding"):
     if not ctx.author.voice:
         return await ctx.send("❌ Du musst im Voice sein!")
-    vc = ctx.voice_client or await ctx.author.voice.channel.connect()
+    if ctx.voice_client is None:
+        await ctx.author.voice.channel.connect()
     url = radios.get(station.lower(), radios["dasding"])
-    await ctx.send(f"📻 **{station.upper()}** Radio läuft!")
+    await ctx.send(f"📻 **{station.upper()}** läuft!")
     try:
         source = discord.FFmpegPCMAudio(url, before_options='-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5')
         source = discord.PCMVolumeTransformer(source, volume=volume_level)
-        vc.play(source)
+        ctx.voice_client.play(source)
     except Exception as e:
         await ctx.send(f"Fehler: {e}")
 
