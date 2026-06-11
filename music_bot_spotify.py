@@ -9,13 +9,12 @@ intents.message_content = True
 bot = commands.Bot(command_prefix='!', intents=intents)
 
 ydl_opts = {
-    'format': 'bestaudio/best',
+    'format': '251/140/bestaudio/best',
     'quiet': True,
     'noplaylist': True,
     'default_search': 'ytsearch',
     'ignoreerrors': True,
     'no_warnings': True,
-    'cookiefile': 'cookies.txt',
 }
 
 queue = []
@@ -23,7 +22,7 @@ volume_level = 0.5
 
 @bot.event
 async def on_ready():
-    print(f'✅ {bot.user} ist ONLINE! Fixed Version')
+    print(f'✅ {bot.user} ist ONLINE! Simple Play')
 
 radios = {
     "dasding": "https://liveradio.swr.de/d9zadj3/dasding/",
@@ -50,8 +49,7 @@ async def play_next(ctx):
         vc.play(source, after=lambda e: asyncio.run_coroutine_threadsafe(play_next(ctx), bot.loop))
         await ctx.send(f'🎵 **Jetzt läuft:** {title}')
     except Exception as e:
-        await ctx.send(f"❌ Fehler: {e}")
-        await play_next(ctx)
+        await ctx.send(f"❌ Play Fehler: {str(e)[:100]}")
 
 @bot.command()
 async def play(ctx, *, search: str):
