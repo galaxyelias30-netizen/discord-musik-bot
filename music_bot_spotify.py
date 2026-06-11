@@ -112,4 +112,5 @@ async def stop(ctx):
         queue.clear()
         await ctx.send("🛑 Gestoppt.")
 
-bot.run('DEIN_TOKEN_HIER')   # Token später wieder einfügen
+import os
+bot.run(os.getenv('DISCORD_TOKEN'))
