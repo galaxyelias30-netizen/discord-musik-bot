@@ -12,7 +12,6 @@ ydl_opts = {
     'format': 'bestaudio/best',
     'quiet': True,
     'noplaylist': True,
-    'default_search': 'ytsearch',
     'ignoreerrors': True,
     'no_warnings': True,
 }
@@ -22,7 +21,7 @@ volume_level = 0.5
 
 @bot.event
 async def on_ready():
-    print(f'✅ {bot.user} ist ONLINE! Radio Priority')
+    print(f'✅ {bot.user} ist ONLINE! Direct Link Version')
 
 radios = {
     "dasding": "https://liveradio.swr.de/d9zadj3/dasding/",
@@ -50,17 +49,18 @@ async def play_next(ctx):
         vc.play(source, after=lambda e: asyncio.run_coroutine_threadsafe(play_next(ctx), bot.loop))
         await ctx.send(f'🎵 **Jetzt läuft:** {title}')
     except Exception as e:
-        await ctx.send(f"❌ Play Fehler (YouTube blockt stark): {str(e)[:100]}")
+        await ctx.send(f"❌ Fehler: {e}")
         await play_next(ctx)
 
 @bot.command()
-async def play(ctx, *, search: str):
+async def play(ctx, *, link: str):
     if not ctx.author.voice:
         return await ctx.send("❌ Du musst im Voice sein!")
     if ctx.voice_client is None:
         await ctx.author.voice.channel.connect()
-    await ctx.send(f"🔍 Suche: **{search}**")
-    queue.append(f"ytsearch:{search}" if not search.startswith("http") else search)
+    
+    await ctx.send(f"🔍 Lade: **{link}**")
+    queue.append(link)
     if not ctx.voice_client.is_playing():
         await play_next(ctx)
 
