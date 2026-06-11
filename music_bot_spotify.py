@@ -21,7 +21,7 @@ volume_level = 0.5
 
 @bot.event
 async def on_ready():
-    print(f'✅ {bot.user} ist ONLINE! Auto-Stop Version')
+    print(f'✅ {bot.user} ist ONLINE! Stop-Fix Version')
 
 radios = {
     "dasding": "https://liveradio.swr.de/d9zadj3/dasding/",
@@ -34,8 +34,10 @@ radios = {
 }
 
 async def stop_current(ctx):
-    if ctx.voice_client and ctx.voice_client.is_playing():
-        ctx.voice_client.stop()
+    if ctx.voice_client:
+        if ctx.voice_client.is_playing():
+            ctx.voice_client.stop()
+        await asyncio.sleep(0.5)  # Kleiner Delay für sauberen Stop
 
 async def play_next(ctx):
     if not queue:
@@ -46,8 +48,7 @@ async def play_next(ctx):
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(query, download=False)
             if not info or 'url' not in info:
-                await ctx.send("❌ Konnte nicht laden.")
-                return await play_next(ctx)
+                return await ctx.send("❌ Konnte Audio nicht laden.")
             url = info['url']
             title = info.get('title', 'Song')
         vc = ctx.voice_client
@@ -67,10 +68,9 @@ async def play(ctx, *, link: str):
         await ctx.author.voice.channel.connect()
     await stop_current(ctx)
     await ctx.send(f"🔍 Lade: **{link}**")
-    queue.clear()  # Alte Queue löschen
+    queue.clear()
     queue.append(link)
-    if not ctx.voice_client.is_playing():
-        await play_next(ctx)
+    await play_next(ctx)
 
 @bot.command()
 async def radio(ctx, station: str = "dasding"):
