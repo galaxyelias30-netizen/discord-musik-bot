@@ -2,19 +2,29 @@ import discord
 from discord.ext import commands
 import yt_dlp
 import asyncio
+import os
 
 intents = discord.Intents.default()
 intents.message_content = True
 bot = commands.Bot(command_prefix='!', intents=intents)
 
-ydl_opts = {'format': 'bestaudio/best', 'quiet': True, 'noplaylist': True}
+ydl_opts = {
+    'format': 'bestaudio/best',
+    'quiet': True,
+    'noplaylist': True,
+    'default_search': 'ytsearch',
+    'ignoreerrors': True,
+    'no_warnings': True,
+    'extractor_args': {'youtube': {'skip': ['dash', 'hls', 'webpage']}},
+    'age_limit': 0,
+}
 
 queue = []
 volume_level = 0.5
 
 @bot.event
 async def on_ready():
-    print(f'✅ {bot.user} ist ONLINE! Fix Version')
+    print(f'✅ {bot.user} ist ONLINE! Anti-Block Version')
 
 radios = {
     "dasding": "https://liveradio.swr.de/d9zadj3/dasding/",
@@ -23,6 +33,7 @@ radios = {
     "lofi": "https://stream.laut.fm/lofi",
     "chill": "https://stream.laut.fm/chill",
     "rap": "https://stream.laut.fm/rap",
+    "techno": "https://stream.laut.fm/techno",
 }
 
 async def play_next(ctx):
@@ -36,31 +47,23 @@ async def play_next(ctx):
             if 'entries' in info:
                 info = info['entries'][0]
             url = info['url']
-            title = info.get('title', 'Unbekannter Song')
-        
+            title = info.get('title', 'Song')
         vc = ctx.voice_client
         source = discord.FFmpegPCMAudio(url, before_options='-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', options='-vn')
         source = discord.PCMVolumeTransformer(source, volume=volume_level)
         vc.play(source, after=lambda e: asyncio.run_coroutine_threadsafe(play_next(ctx), bot.loop))
         await ctx.send(f'🎵 **Jetzt läuft:** {title}')
     except Exception as e:
-        await ctx.send(f"❌ Abspielfehler: {e}")
+        await ctx.send(f"❌ Fehler: {e}")
         await play_next(ctx)
 
 @bot.command()
 async def play(ctx, *, search: str):
     if not ctx.author.voice:
         return await ctx.send("❌ Du musst in einem Voice-Channel sein!")
-
     vc = ctx.voice_client or await ctx.author.voice.channel.connect()
-
     await ctx.send(f"🔍 Suche: **{search}**")
-    
-    if "http" in search:
-        queue.append(search)
-    else:
-        queue.append(f"ytsearch:{search}")
-
+    queue.append(f"ytsearch:{search}" if not search.startswith("http") else search)
     if not vc.is_playing():
         await play_next(ctx)
 
@@ -68,19 +71,14 @@ async def play(ctx, *, search: str):
 async def radio(ctx, station: str = None):
     if not ctx.author.voice:
         return await ctx.send("❌ Du musst in einem Voice-Channel sein!")
-    
     vc = ctx.voice_client or await ctx.author.voice.channel.connect()
-
     if station is None:
-        return await ctx.send(f"Verfügbare Sender: `{', '.join(radios.keys())}`")
-
+        return await ctx.send(f"Verfügbar: `{', '.join(radios.keys())}`")
     station = station.lower()
     if station not in radios:
         return await ctx.send("Sender nicht gefunden.")
-
     url = radios[station]
-    await ctx.send(f"📻 **{station.upper()}** läuft jetzt!")
-
+    await ctx.send(f"📻 **{station.upper()}** läuft!")
     try:
         source = discord.FFmpegPCMAudio(url, before_options='-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5')
         source = discord.PCMVolumeTransformer(source, volume=volume_level)
@@ -95,9 +93,7 @@ async def volume(ctx, vol: int):
         volume_level = vol / 100
         if ctx.voice_client and ctx.voice_client.source:
             ctx.voice_client.source.volume = volume_level
-        await ctx.send(f"🔊 Lautstärke auf **{vol}%**")
-    else:
-        await ctx.send("Nur 0-200!")
+        await ctx.send(f"🔊 Lautstärke: **{vol}%**")
 
 @bot.command()
 async def skip(ctx):
@@ -112,5 +108,4 @@ async def stop(ctx):
         queue.clear()
         await ctx.send("🛑 Gestoppt.")
 
-import os
 bot.run(os.getenv('DISCORD_TOKEN'))
