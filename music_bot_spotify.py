@@ -17,6 +17,7 @@ ydl_opts = {
     'no_warnings': True,
     'cookiefile': 'cookies.txt',
     'extractor_args': {'youtube': {'skip': ['dash', 'hls']}},
+    'postprocessors': [{'key': 'FFmpegExtractAudio', 'preferredcodec': 'mp3'}],
 }
 
 queue = []
@@ -24,7 +25,7 @@ volume_level = 0.5
 
 @bot.event
 async def on_ready():
-    print(f'✅ {bot.user} ist ONLINE! Cookie Version')
+    print(f'✅ {bot.user} ist ONLINE! Final Version')
 
 radios = {
     "dasding": "https://liveradio.swr.de/d9zadj3/dasding/",
