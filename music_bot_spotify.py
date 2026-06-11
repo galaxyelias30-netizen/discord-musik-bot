@@ -21,13 +21,15 @@ volume_level = 0.5
 
 @bot.event
 async def on_ready():
-    print(f'✅ {bot.user} ist ONLINE! Direct Link Fix')
+    print(f'✅ {bot.user} ist ONLINE! Final Fix')
 
 radios = {
     "dasding": "https://liveradio.swr.de/d9zadj3/dasding/",
     "1live": "http://wdr-1live-live.icecast.wdr.de/wdr/1live/live/mp3/128/stream.mp3",
     "phonk": "https://stream.laut.fm/phonk",
     "lofi": "https://stream.laut.fm/lofi",
+    "chill": "https://stream.laut.fm/chill",
+    "deutschrap": "https://stream.laut.fm/deutschrap",
 }
 
 async def play_next(ctx):
@@ -38,21 +40,17 @@ async def play_next(ctx):
         await ctx.send("⏳ Lade Song...")
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(query, download=False)
-            if info is None:
-                return await ctx.send("❌ Konnte den Song nicht laden.")
-            if 'entries' in info:
-                info = info['entries'][0]
-            url = info.get('url')
-            title = info.get('title', 'Unbekannter Song')
-            if not url:
-                return await ctx.send("❌ Kein Audio-Stream gefunden.")
+            if info is None or 'url' not in info:
+                return await ctx.send("❌ Konnte Audio nicht laden (YouTube Block).")
+            url = info['url']
+            title = info.get('title', 'Song')
         vc = ctx.voice_client
         source = discord.FFmpegPCMAudio(url, before_options='-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', options='-vn')
         source = discord.PCMVolumeTransformer(source, volume=volume_level)
         vc.play(source, after=lambda e: asyncio.run_coroutine_threadsafe(play_next(ctx), bot.loop))
         await ctx.send(f'🎵 **Jetzt läuft:** {title}')
     except Exception as e:
-        await ctx.send(f"❌ Play Fehler: {str(e)[:120]}")
+        await ctx.send(f"❌ Fehler: {str(e)[:100]}")
         await play_next(ctx)
 
 @bot.command()
